@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMING SOON - Neo Tokyo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+        }
+
+        /* Cyberpunk Grid Background */
+        .grid-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(255, 0, 128, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        /* Scanlines Effect */
+        .scanlines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Neon Circles */
+        .neon-circle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+
+        .circle-1 {
+            width: 300px;
+            height: 300px;
+            border: 2px solid #ff0080;
+            top: 10%;
+            left: 10%;
+            box-shadow: 0 0 20px #ff0080, inset 0 0 20px #ff0080;
+        }
+
+        .circle-2 {
+            width: 200px;
+            height: 200px;
+            border: 2px solid #00ffff;
+            bottom: 20%;
+            right: 15%;
+            box-shadow: 0 0 20px #00ffff, inset 0 0 20px #00ffff;
+        }
+
+        .circle-3 {
+            width: 150px;
+            height: 150px;
+            border: 2px solid #ff00ff;
+            top: 50%;
+            right: 10%;
+            box-shadow: 0 0 20px #ff00ff, inset 0 0 20px #ff00ff;
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        /* Japanese Text */
+        .japanese-text {
+            font-size: 3rem;
+            color: #ff0080;
+            text-shadow:
+                0 0 10px #ff0080,
+                0 0 20px #ff0080,
+                0 0 30px #ff0080;
+            margin-bottom: 2rem;
+            opacity: 0;
+        }
+
+        /* Coming Soon Text */
+        .coming-soon {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            opacity: 0;
+        }
+
+        .coming-soon .word {
+            display: inline-block;
+            margin: 0 1rem;
+        }
+
+        .coming-soon .letter {
+            display: inline-block;
+            text-shadow:
+                0 0 10px #00ffff,
+                0 0 20px #00ffff,
+                0 0 30px #00ffff,
+                0 0 40px #00ffff,
+                0 0 50px #00ffff;
+        }
+
+        /* Glitch Effect */
+        .glitch {
+            position: relative;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 #ff0080;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim 3s infinite linear alternate-reverse;
+        }
+
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 #00ffff;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(61px, 9999px, 90px, 0); }
+            20% { clip: rect(33px, 9999px, 95px, 0); }
+            40% { clip: rect(63px, 9999px, 28px, 0); }
+            60% { clip: rect(44px, 9999px, 62px, 0); }
+            80% { clip: rect(82px, 9999px, 41px, 0); }
+            100% { clip: rect(51px, 9999px, 71px, 0); }
+        }
+
+        /* Subtitle */
+        .subtitle {
+            font-size: 1.5rem;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+            margin-bottom: 3rem;
+            opacity: 0;
+        }
+
+        /* Animated Pills */
+        .pill {
+            position: absolute;
+            width: 40px;
+            height: 20px;
+            border-radius: 20px;
+            opacity: 0.6;
+        }
+
+        /* Energy Lines */
+        .energy-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ff0080, transparent);
+            opacity: 0.5;
+        }
+
+        /* Countdown Timer */
+        .countdown {
+            display: flex;
+            gap: 2rem;
+            opacity: 0;
+        }
+
+        .countdown-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .countdown-value {
+            font-size: 3rem;
+            color: #ff00ff;
+            text-shadow:
+                0 0 10px #ff00ff,
+                0 0 20px #ff00ff,
+                0 0 30px #ff00ff;
+            font-weight: bold;
+            min-width: 80px;
+        }
+
+        .countdown-label {
+            font-size: 1rem;
+            color: #00ffff;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .coming-soon {
+                font-size: 3rem;
+                letter-spacing: 0.3rem;
+            }
+            .japanese-text {
+                font-size: 2rem;
+            }
+            .subtitle {
+                font-size: 1rem;
+            }
+            .countdown-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Grid Background -->
+    <div class="grid-background"></div>
+
+    <!-- Scanlines -->
+    <div class="scanlines"></div>
+
+    <!-- Neon Circles -->
+    <div class="neon-circle circle-1"></div>
+    <div class="neon-circle circle-2"></div>
+    <div class="neon-circle circle-3"></div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="japanese-text">近日公開</div>
+
+        <h1 class="coming-soon">
+            <span class="word">
+                <span class="letter glitch" data-text="C">C</span>
+                <span class="letter glitch" data-text="O">O</span>
+                <span class="letter glitch" data-text="M">M</span>
+                <span class="letter glitch" data-text="I">I</span>
+                <span class="letter glitch" data-text="N">N</span>
+                <span class="letter glitch" data-text="G">G</span>
+            </span>
+            <span class="word">
+                <span class="letter glitch" data-text="S">S</span>
+                <span class="letter glitch" data-text="O">O</span>
+                <span class="letter glitch" data-text="O">O</span>
+                <span class="letter glitch" data-text="N">N</span>
+            </span>
+        </h1>
+
+        <p class="subtitle">NEO TOKYO 2025 - PREPARE YOURSELF</p>
+
+        <div class="countdown">
+            <div class="countdown-item">
+                <div class="countdown-value" id="days">88</div>
+                <div class="countdown-label">Days</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-value" id="hours">88</div>
+                <div class="countdown-label">Hours</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-value" id="minutes">88</div>
+                <div class="countdown-label">Minutes</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-value" id="seconds">88</div>
+                <div class="countdown-label">Seconds</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anime.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+    <script>
+        // Animate Grid Background
+        anime({
+            targets: '.grid-background',
+            rotateX: [0, 60],
+            duration: 3000,
+            easing: 'easeInOutQuad'
+        });
+
+        // Animate Neon Circles
+        anime({
+            targets: '.neon-circle',
+            scale: [0, 1],
+            rotate: [0, 360],
+            opacity: [0, 0.3],
+            delay: anime.stagger(200),
+            duration: 2000,
+            easing: 'easeOutElastic(1, .8)'
+        });
+
+        // Floating animation for circles
+        anime({
+            targets: '.circle-1',
+            translateY: [-20, 20],
+            translateX: [-10, 10],
+            duration: 4000,
+            loop: true,
+            direction: 'alternate',
+            easing: 'easeInOutSine'
+        });
+
+        anime({
+            targets: '.circle-2',
+            translateY: [-15, 15],
+            translateX: [10, -10],
+            duration: 5000,
+            loop: true,
+            direction: 'alternate',
+            easing: 'easeInOutSine'
+        });
+
+        anime({
+            targets: '.circle-3',
+            translateY: [10, -10],
+            translateX: [-15, 15],
+            duration: 3500,
+            loop: true,
+            direction: 'alternate',
+            easing: 'easeInOutSine'
+        });
+
+        // Animate Japanese Text
+        anime({
+            targets: '.japanese-text',
+            opacity: [0, 1],
+            translateY: [-50, 0],
+            duration: 1500,
+            delay: 500,
+            easing: 'easeOutExpo'
+        });
+
+        // Animate Letters in "COMING SOON"
+        anime.timeline({loop: false})
+            .add({
+                targets: '.coming-soon',
+                opacity: [0, 1],
+                duration: 100,
+                delay: 1000
+            })
+            .add({
+                targets: '.coming-soon .letter',
+                opacity: [0, 1],
+                translateY: [50, 0],
+                translateZ: 0,
+                rotateX: [90, 0],
+                delay: anime.stagger(100, {start: 100}),
+                duration: 1000,
+                easing: 'easeOutExpo'
+            });
+
+        // Pulsing glow effect on letters
+        anime({
+            targets: '.coming-soon .letter',
+            textShadow: [
+                '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff',
+                '0 0 20px #00ffff, 0 0 30px #00ffff, 0 0 40px #00ffff, 0 0 50px #00ffff',
+                '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff'
+            ],
+            duration: 2000,
+            delay: 2000,
+            loop: true,
+            direction: 'alternate',
+            easing: 'easeInOutSine'
+        });
+
+        // Animate Subtitle
+        anime({
+            targets: '.subtitle',
+            opacity: [0, 1],
+            translateY: [30, 0],
+            delay: 2500,
+            duration: 1500,
+            easing: 'easeOutExpo'
+        });
+
+        // Animate Countdown
+        anime({
+            targets: '.countdown',
+            opacity: [0, 1],
+            scale: [0.8, 1],
+            delay: 3000,
+            duration: 1500,
+            easing: 'easeOutElastic(1, .8)'
+        });
+
+        // Create Animated Pills (Akira reference)
+        function createPill() {
+            const pill = document.createElement('div');
+            pill.className = 'pill';
+            pill.style.left = Math.random() * window.innerWidth + 'px';
+            pill.style.top = Math.random() * window.innerHeight + 'px';
+
+            const colors = ['#ff0080', '#00ffff', '#ff00ff', '#ff0000'];
+            pill.style.background = colors[Math.floor(Math.random() * colors.length)];
+            pill.style.boxShadow = `0 0 20px ${pill.style.background}`;
+
+            document.body.appendChild(pill);
+
+            anime({
+                targets: pill,
+                translateY: [-1000, window.innerHeight + 100],
+                translateX: [
+                    { value: anime.random(-100, 100) },
+                    { value: anime.random(-100, 100) },
+                ],
+                rotate: anime.random(0, 360),
+                opacity: [0, 0.6, 0],
+                duration: anime.random(3000, 6000),
+                easing: 'linear',
+                complete: () => pill.remove()
+            });
+        }
+
+        // Create pills periodically
+        setInterval(createPill, 800);
+
+        // Create Energy Lines
+        function createEnergyLine() {
+            const line = document.createElement('div');
+            line.className = 'energy-line';
+            line.style.top = Math.random() * window.innerHeight + 'px';
+            line.style.left = '0';
+            line.style.width = '0';
+
+            document.body.appendChild(line);
+
+            anime({
+                targets: line,
+                width: [0, window.innerWidth],
+                opacity: [0.5, 0],
+                duration: 1500,
+                easing: 'easeOutExpo',
+                complete: () => line.remove()
+            });
+        }
+
+        setInterval(createEnergyLine, 2000);
+
+        // Countdown Timer
+        function updateCountdown() {
+            // Set target date (90 days from now)
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + 90);
+
+            function update() {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = String(days).padStart(2, '0');
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+            }
+
+            update();
+            setInterval(update, 1000);
+        }
+
+        updateCountdown();
+
+        // Pulse countdown values
+        anime({
+            targets: '.countdown-value',
+            scale: [1, 1.1, 1],
+            duration: 1000,
+            loop: true,
+            easing: 'easeInOutSine',
+            delay: anime.stagger(200)
+        });
+    </script>
+</body>
+</html>
