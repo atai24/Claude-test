@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COMING SOON - Neo Tokyo</title>
+    <title>Kana Typing Game</title>
     <style>
         * {
             margin: 0;
@@ -12,506 +12,442 @@
         }
 
         body {
-            font-family: 'Courier New', monospace;
-            background: #0a0a0a;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             overflow: hidden;
             position: relative;
             height: 100vh;
         }
 
-        /* Cyberpunk Grid Background */
-        .grid-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image:
-                linear-gradient(rgba(255, 0, 128, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            perspective: 1000px;
-            transform-style: preserve-3d;
-        }
-
-        /* Scanlines Effect */
-        .scanlines {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0, 0, 0, 0.15),
-                rgba(0, 0, 0, 0.15) 1px,
-                transparent 1px,
-                transparent 2px
-            );
-            pointer-events: none;
-            z-index: 1000;
-        }
-
-        /* Neon Circles */
-        .neon-circle {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.3;
-        }
-
-        .circle-1 {
-            width: 300px;
-            height: 300px;
-            border: 2px solid #ff0080;
-            top: 10%;
-            left: 10%;
-            box-shadow: 0 0 20px #ff0080, inset 0 0 20px #ff0080;
-        }
-
-        .circle-2 {
-            width: 200px;
-            height: 200px;
-            border: 2px solid #00ffff;
-            bottom: 20%;
-            right: 15%;
-            box-shadow: 0 0 20px #00ffff, inset 0 0 20px #00ffff;
-        }
-
-        .circle-3 {
-            width: 150px;
-            height: 150px;
-            border: 2px solid #ff00ff;
-            top: 50%;
-            right: 10%;
-            box-shadow: 0 0 20px #ff00ff, inset 0 0 20px #ff00ff;
-        }
-
-        /* Main Container */
-        .container {
+        #game-container {
             position: relative;
-            z-index: 10;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #score-board {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 24px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #score {
+            font-weight: bold;
+            color: #ffeb3b;
+        }
+
+        #lives {
+            margin-top: 10px;
+            font-size: 20px;
+        }
+
+        #lives .heart {
+            color: #ff4444;
+        }
+
+        #input-display {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            min-width: 300px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border: 3px solid #667eea;
+        }
+
+        .kana {
+            position: absolute;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 25px;
+            border-radius: 10px;
+            cursor: default;
+            transition: all 0.2s;
+        }
+
+        .kana:hover {
+            transform: scale(1.1);
+        }
+
+        .kana.hit {
+            animation: hitEffect 0.3s ease-out;
+        }
+
+        @keyframes hitEffect {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                background: rgba(76, 175, 80, 0.8);
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        .kana.missed {
+            animation: missEffect 0.5s ease-out;
+        }
+
+        @keyframes missEffect {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100px);
+            }
+        }
+
+        #game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 2000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        #game-over h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ff4444;
+        }
+
+        #game-over p {
+            font-size: 24px;
+            margin: 15px 0;
+        }
+
+        #restart-button {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #restart-button:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            z-index: 3000;
+        }
+
+        #start-screen h1 {
+            font-size: 64px;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        #start-screen p {
+            font-size: 24px;
+            color: #ffeb3b;
+            margin: 15px 0;
             text-align: center;
+            max-width: 600px;
         }
 
-        /* Japanese Text */
-        .japanese-text {
-            font-size: 3rem;
-            color: #ff0080;
-            text-shadow:
-                0 0 10px #ff0080,
-                0 0 20px #ff0080,
-                0 0 30px #ff0080;
-            margin-bottom: 2rem;
-            opacity: 0;
+        #start-button {
+            margin-top: 40px;
+            padding: 20px 60px;
+            font-size: 32px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
-        /* Coming Soon Text */
-        .coming-soon {
-            font-size: 6rem;
-            font-weight: bold;
-            color: #fff;
-            text-transform: uppercase;
-            letter-spacing: 0.5rem;
-            margin-bottom: 2rem;
-            position: relative;
-            opacity: 0;
+        #start-button:hover {
+            background: #45a049;
+            transform: scale(1.05);
         }
 
-        .coming-soon .word {
-            display: inline-block;
-            margin: 0 1rem;
-        }
-
-        .coming-soon .letter {
-            display: inline-block;
-            text-shadow:
-                0 0 10px #00ffff,
-                0 0 20px #00ffff,
-                0 0 30px #00ffff,
-                0 0 40px #00ffff,
-                0 0 50px #00ffff;
-        }
-
-        /* Glitch Effect */
-        .glitch {
-            position: relative;
-        }
-
-        .glitch::before,
-        .glitch::after {
-            content: attr(data-text);
+        .kana-type-badge {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        .glitch::before {
-            left: 2px;
-            text-shadow: -2px 0 #ff0080;
-            clip: rect(24px, 550px, 90px, 0);
-            animation: glitch-anim 3s infinite linear alternate-reverse;
-        }
-
-        .glitch::after {
-            left: -2px;
-            text-shadow: -2px 0 #00ffff;
-            clip: rect(85px, 550px, 140px, 0);
-            animation: glitch-anim 2s infinite linear alternate-reverse;
-        }
-
-        @keyframes glitch-anim {
-            0% { clip: rect(61px, 9999px, 90px, 0); }
-            20% { clip: rect(33px, 9999px, 95px, 0); }
-            40% { clip: rect(63px, 9999px, 28px, 0); }
-            60% { clip: rect(44px, 9999px, 62px, 0); }
-            80% { clip: rect(82px, 9999px, 41px, 0); }
-            100% { clip: rect(51px, 9999px, 71px, 0); }
-        }
-
-        /* Subtitle */
-        .subtitle {
-            font-size: 1.5rem;
-            color: #00ffff;
-            text-shadow: 0 0 10px #00ffff;
-            margin-bottom: 3rem;
-            opacity: 0;
-        }
-
-        /* Animated Pills */
-        .pill {
-            position: absolute;
-            width: 40px;
-            height: 20px;
-            border-radius: 20px;
-            opacity: 0.6;
-        }
-
-        /* Energy Lines */
-        .energy-line {
-            position: absolute;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #ff0080, transparent);
-            opacity: 0.5;
-        }
-
-        /* Countdown Timer */
-        .countdown {
-            display: flex;
-            gap: 2rem;
-            opacity: 0;
-        }
-
-        .countdown-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .countdown-value {
-            font-size: 3rem;
-            color: #ff00ff;
-            text-shadow:
-                0 0 10px #ff00ff,
-                0 0 20px #ff00ff,
-                0 0 30px #ff00ff;
-            font-weight: bold;
-            min-width: 80px;
-        }
-
-        .countdown-label {
-            font-size: 1rem;
-            color: #00ffff;
-            text-transform: uppercase;
-            margin-top: 0.5rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .coming-soon {
-                font-size: 3rem;
-                letter-spacing: 0.3rem;
-            }
-            .japanese-text {
-                font-size: 2rem;
-            }
-            .subtitle {
-                font-size: 1rem;
-            }
-            .countdown-value {
-                font-size: 2rem;
-            }
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 18px;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
-    <!-- Grid Background -->
-    <div class="grid-background"></div>
+    <div id="game-container">
+        <div id="start-screen">
+            <h1>かな Typing Game</h1>
+            <p>Type the romaji for each falling kana character!</p>
+            <p>Press the correct keys before the kana reaches the bottom</p>
+            <button id="start-button">Start Game</button>
+        </div>
 
-    <!-- Scanlines -->
-    <div class="scanlines"></div>
+        <div id="score-board">
+            <div>Score: <span id="score">0</span></div>
+            <div id="lives">Lives: <span class="heart">❤️❤️❤️</span></div>
+        </div>
 
-    <!-- Neon Circles -->
-    <div class="neon-circle circle-1"></div>
-    <div class="neon-circle circle-2"></div>
-    <div class="neon-circle circle-3"></div>
+        <div class="kana-type-badge">Hiragana Mode</div>
 
-    <!-- Main Container -->
-    <div class="container">
-        <div class="japanese-text">近日公開</div>
+        <div id="input-display"></div>
 
-        <h1 class="coming-soon">
-            <span class="word">
-                <span class="letter glitch" data-text="C">C</span>
-                <span class="letter glitch" data-text="O">O</span>
-                <span class="letter glitch" data-text="M">M</span>
-                <span class="letter glitch" data-text="I">I</span>
-                <span class="letter glitch" data-text="N">N</span>
-                <span class="letter glitch" data-text="G">G</span>
-            </span>
-            <span class="word">
-                <span class="letter glitch" data-text="S">S</span>
-                <span class="letter glitch" data-text="O">O</span>
-                <span class="letter glitch" data-text="O">O</span>
-                <span class="letter glitch" data-text="N">N</span>
-            </span>
-        </h1>
-
-        <p class="subtitle">NEO TOKYO 2025 - PREPARE YOURSELF</p>
-
-        <div class="countdown">
-            <div class="countdown-item">
-                <div class="countdown-value" id="days">88</div>
-                <div class="countdown-label">Days</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-value" id="hours">88</div>
-                <div class="countdown-label">Hours</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-value" id="minutes">88</div>
-                <div class="countdown-label">Minutes</div>
-            </div>
-            <div class="countdown-item">
-                <div class="countdown-value" id="seconds">88</div>
-                <div class="countdown-label">Seconds</div>
-            </div>
+        <div id="game-over">
+            <h1>Game Over!</h1>
+            <p>Final Score: <span id="final-score">0</span></p>
+            <button id="restart-button">Play Again</button>
         </div>
     </div>
 
-    <!-- Anime.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-
     <script>
-        // Animate Grid Background
-        anime({
-            targets: '.grid-background',
-            rotateX: [0, 60],
-            duration: 3000,
-            easing: 'easeInOutQuad'
-        });
+        // Kana to Romaji mapping (Hiragana)
+        const hiraganaMap = {
+            'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o',
+            'か': 'ka', 'き': 'ki', 'く': 'ku', 'け': 'ke', 'こ': 'ko',
+            'さ': 'sa', 'し': 'shi', 'す': 'su', 'せ': 'se', 'そ': 'so',
+            'た': 'ta', 'ち': 'chi', 'つ': 'tsu', 'て': 'te', 'と': 'to',
+            'な': 'na', 'に': 'ni', 'ぬ': 'nu', 'ね': 'ne', 'の': 'no',
+            'は': 'ha', 'ひ': 'hi', 'ふ': 'fu', 'へ': 'he', 'ほ': 'ho',
+            'ま': 'ma', 'み': 'mi', 'む': 'mu', 'め': 'me', 'も': 'mo',
+            'や': 'ya', 'ゆ': 'yu', 'よ': 'yo',
+            'ら': 'ra', 'り': 'ri', 'る': 'ru', 'れ': 're', 'ろ': 'ro',
+            'わ': 'wa', 'を': 'wo', 'ん': 'n',
+            'が': 'ga', 'ぎ': 'gi', 'ぐ': 'gu', 'げ': 'ge', 'ご': 'go',
+            'ざ': 'za', 'じ': 'ji', 'ず': 'zu', 'ぜ': 'ze', 'ぞ': 'zo',
+            'だ': 'da', 'ぢ': 'ji', 'づ': 'zu', 'で': 'de', 'ど': 'do',
+            'ば': 'ba', 'び': 'bi', 'ぶ': 'bu', 'べ': 'be', 'ぼ': 'bo',
+            'ぱ': 'pa', 'ぴ': 'pi', 'ぷ': 'pu', 'ぺ': 'pe', 'ぽ': 'po'
+        };
 
-        // Animate Neon Circles
-        anime({
-            targets: '.neon-circle',
-            scale: [0, 1],
-            rotate: [0, 360],
-            opacity: [0, 0.3],
-            delay: anime.stagger(200),
-            duration: 2000,
-            easing: 'easeOutElastic(1, .8)'
-        });
+        // Game state
+        let score = 0;
+        let lives = 3;
+        let currentInput = '';
+        let activeKana = [];
+        let gameLoop;
+        let spawnLoop;
+        let gameRunning = false;
 
-        // Floating animation for circles
-        anime({
-            targets: '.circle-1',
-            translateY: [-20, 20],
-            translateX: [-10, 10],
-            duration: 4000,
-            loop: true,
-            direction: 'alternate',
-            easing: 'easeInOutSine'
-        });
+        // DOM elements
+        const gameContainer = document.getElementById('game-container');
+        const scoreElement = document.getElementById('score');
+        const livesElement = document.getElementById('lives');
+        const inputDisplay = document.getElementById('input-display');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScoreElement = document.getElementById('final-score');
+        const startScreen = document.getElementById('start-screen');
+        const startButton = document.getElementById('start-button');
+        const restartButton = document.getElementById('restart-button');
 
-        anime({
-            targets: '.circle-2',
-            translateY: [-15, 15],
-            translateX: [10, -10],
-            duration: 5000,
-            loop: true,
-            direction: 'alternate',
-            easing: 'easeInOutSine'
-        });
+        // Get random kana
+        function getRandomKana() {
+            const kanaList = Object.keys(hiraganaMap);
+            return kanaList[Math.floor(Math.random() * kanaList.length)];
+        }
 
-        anime({
-            targets: '.circle-3',
-            translateY: [10, -10],
-            translateX: [-15, 15],
-            duration: 3500,
-            loop: true,
-            direction: 'alternate',
-            easing: 'easeInOutSine'
-        });
+        // Create falling kana
+        function createKana() {
+            const kana = document.createElement('div');
+            kana.className = 'kana';
+            const kanaChar = getRandomKana();
+            kana.textContent = kanaChar;
+            kana.dataset.romaji = hiraganaMap[kanaChar];
+            kana.dataset.posY = 0;
+            kana.style.left = Math.random() * (window.innerWidth - 100) + 'px';
+            kana.style.top = '-50px';
 
-        // Animate Japanese Text
-        anime({
-            targets: '.japanese-text',
-            opacity: [0, 1],
-            translateY: [-50, 0],
-            duration: 1500,
-            delay: 500,
-            easing: 'easeOutExpo'
-        });
+            gameContainer.appendChild(kana);
+            activeKana.push(kana);
+        }
 
-        // Animate Letters in "COMING SOON"
-        anime.timeline({loop: false})
-            .add({
-                targets: '.coming-soon',
-                opacity: [0, 1],
-                duration: 100,
-                delay: 1000
-            })
-            .add({
-                targets: '.coming-soon .letter',
-                opacity: [0, 1],
-                translateY: [50, 0],
-                translateZ: 0,
-                rotateX: [90, 0],
-                delay: anime.stagger(100, {start: 100}),
-                duration: 1000,
-                easing: 'easeOutExpo'
-            });
+        // Update kana positions
+        function updateKana() {
+            activeKana.forEach((kana, index) => {
+                const currentY = parseFloat(kana.dataset.posY);
+                const newY = currentY + 2; // Fall speed
+                kana.dataset.posY = newY;
+                kana.style.top = newY + 'px';
 
-        // Pulsing glow effect on letters
-        anime({
-            targets: '.coming-soon .letter',
-            textShadow: [
-                '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff',
-                '0 0 20px #00ffff, 0 0 30px #00ffff, 0 0 40px #00ffff, 0 0 50px #00ffff',
-                '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff'
-            ],
-            duration: 2000,
-            delay: 2000,
-            loop: true,
-            direction: 'alternate',
-            easing: 'easeInOutSine'
-        });
-
-        // Animate Subtitle
-        anime({
-            targets: '.subtitle',
-            opacity: [0, 1],
-            translateY: [30, 0],
-            delay: 2500,
-            duration: 1500,
-            easing: 'easeOutExpo'
-        });
-
-        // Animate Countdown
-        anime({
-            targets: '.countdown',
-            opacity: [0, 1],
-            scale: [0.8, 1],
-            delay: 3000,
-            duration: 1500,
-            easing: 'easeOutElastic(1, .8)'
-        });
-
-        // Create Animated Pills (Akira reference)
-        function createPill() {
-            const pill = document.createElement('div');
-            pill.className = 'pill';
-            pill.style.left = Math.random() * window.innerWidth + 'px';
-            pill.style.top = Math.random() * window.innerHeight + 'px';
-
-            const colors = ['#ff0080', '#00ffff', '#ff00ff', '#ff0000'];
-            pill.style.background = colors[Math.floor(Math.random() * colors.length)];
-            pill.style.boxShadow = `0 0 20px ${pill.style.background}`;
-
-            document.body.appendChild(pill);
-
-            anime({
-                targets: pill,
-                translateY: [-1000, window.innerHeight + 100],
-                translateX: [
-                    { value: anime.random(-100, 100) },
-                    { value: anime.random(-100, 100) },
-                ],
-                rotate: anime.random(0, 360),
-                opacity: [0, 0.6, 0],
-                duration: anime.random(3000, 6000),
-                easing: 'linear',
-                complete: () => pill.remove()
+                // Check if kana reached bottom
+                if (newY > window.innerHeight - 100) {
+                    kana.classList.add('missed');
+                    setTimeout(() => {
+                        if (kana.parentElement) {
+                            kana.remove();
+                        }
+                    }, 500);
+                    activeKana.splice(index, 1);
+                    loseLife();
+                }
             });
         }
 
-        // Create pills periodically
-        setInterval(createPill, 800);
+        // Check input against active kana
+        function checkInput() {
+            let matched = false;
 
-        // Create Energy Lines
-        function createEnergyLine() {
-            const line = document.createElement('div');
-            line.className = 'energy-line';
-            line.style.top = Math.random() * window.innerHeight + 'px';
-            line.style.left = '0';
-            line.style.width = '0';
+            for (let i = 0; i < activeKana.length; i++) {
+                const kana = activeKana[i];
+                const romaji = kana.dataset.romaji;
 
-            document.body.appendChild(line);
-
-            anime({
-                targets: line,
-                width: [0, window.innerWidth],
-                opacity: [0.5, 0],
-                duration: 1500,
-                easing: 'easeOutExpo',
-                complete: () => line.remove()
-            });
-        }
-
-        setInterval(createEnergyLine, 2000);
-
-        // Countdown Timer
-        function updateCountdown() {
-            // Set target date (90 days from now)
-            const targetDate = new Date();
-            targetDate.setDate(targetDate.getDate() + 90);
-
-            function update() {
-                const now = new Date().getTime();
-                const distance = targetDate - now;
-
-                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-                document.getElementById('days').textContent = String(days).padStart(2, '0');
-                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
-                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+                if (romaji === currentInput.toLowerCase()) {
+                    // Hit!
+                    kana.classList.add('hit');
+                    setTimeout(() => {
+                        if (kana.parentElement) {
+                            kana.remove();
+                        }
+                    }, 300);
+                    activeKana.splice(i, 1);
+                    score += 10;
+                    scoreElement.textContent = score;
+                    currentInput = '';
+                    inputDisplay.textContent = '';
+                    matched = true;
+                    break;
+                }
             }
 
-            update();
-            setInterval(update, 1000);
+            // Check if any kana starts with current input
+            if (!matched && currentInput.length > 0) {
+                let hasMatch = false;
+                for (let kana of activeKana) {
+                    if (kana.dataset.romaji.startsWith(currentInput.toLowerCase())) {
+                        hasMatch = true;
+                        break;
+                    }
+                }
+
+                // If no kana matches, reset input
+                if (!hasMatch) {
+                    currentInput = '';
+                    inputDisplay.textContent = '';
+                }
+            }
         }
 
-        updateCountdown();
+        // Lose a life
+        function loseLife() {
+            lives--;
+            const hearts = ['❤️❤️❤️', '❤️❤️', '❤️', ''];
+            livesElement.innerHTML = `<span class="heart">${hearts[lives]}</span>`;
 
-        // Pulse countdown values
-        anime({
-            targets: '.countdown-value',
-            scale: [1, 1.1, 1],
-            duration: 1000,
-            loop: true,
-            easing: 'easeInOutSine',
-            delay: anime.stagger(200)
+            if (lives <= 0) {
+                gameOver();
+            }
+        }
+
+        // Game over
+        function gameOver() {
+            gameRunning = false;
+            clearInterval(gameLoop);
+            clearInterval(spawnLoop);
+            finalScoreElement.textContent = score;
+            gameOverScreen.style.display = 'block';
+        }
+
+        // Start game
+        function startGame() {
+            // Reset game state
+            score = 0;
+            lives = 3;
+            currentInput = '';
+            activeKana.forEach(kana => kana.remove());
+            activeKana = [];
+
+            scoreElement.textContent = score;
+            livesElement.innerHTML = '<span class="heart">❤️❤️❤️</span>';
+            inputDisplay.textContent = '';
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'none';
+
+            gameRunning = true;
+
+            // Start game loops
+            gameLoop = setInterval(() => {
+                updateKana();
+            }, 1000 / 60); // 60 FPS
+
+            spawnLoop = setInterval(() => {
+                createKana();
+            }, 2000); // Spawn new kana every 2 seconds
+        }
+
+        // Keyboard input
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+
+            const key = e.key.toLowerCase();
+
+            // Only accept letters
+            if (key.length === 1 && key.match(/[a-z]/)) {
+                currentInput += key;
+                inputDisplay.textContent = currentInput;
+                checkInput();
+            }
+
+            // Backspace
+            if (e.key === 'Backspace') {
+                currentInput = currentInput.slice(0, -1);
+                inputDisplay.textContent = currentInput;
+            }
         });
+
+        // Event listeners
+        startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', startGame);
+
+        // Focus on window for keyboard input
+        window.focus();
     </script>
 </body>
 </html>
