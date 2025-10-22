@@ -132,14 +132,33 @@
         }
 
         #monster {
-            font-size: 120px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             background: rgba(255, 107, 107, 0.3);
-            padding: 40px 60px;
+            padding: 30px 50px;
             border-radius: 20px;
             border: 4px solid #ff6b6b;
             box-shadow: 0 10px 30px rgba(255, 107, 107, 0.5);
             margin-bottom: 20px;
             transition: all 0.3s;
+        }
+
+        #monster-sprite {
+            font-size: 140px;
+            filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.5));
+            margin-bottom: 10px;
+        }
+
+        #monster-kana {
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 20px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
         #monster.attacking {
@@ -182,12 +201,6 @@
             color: #ff6b6b;
             font-weight: bold;
             margin-bottom: 5px;
-        }
-
-        #monster-romaji {
-            font-size: 18px;
-            color: #4ecdc4;
-            font-style: italic;
         }
 
         /* Player */
@@ -379,8 +392,9 @@
         <div id="start-screen">
             <h1>🗡️ Kana RPG Battle 🗡️</h1>
             <p>Face waves of kana monsters!</p>
-            <p>Type the correct romaji to defeat each monster before they damage you!</p>
+            <p>Each monster shows a kana character - type its romaji to defeat it!</p>
             <p>Monsters attack continuously until defeated!</p>
+            <p>Can you survive the endless waves?</p>
             <button id="start-button">Start Battle</button>
         </div>
 
@@ -395,8 +409,10 @@
                 <div id="monster-health-bar">
                     <div id="monster-health-fill"></div>
                 </div>
-                <div id="monster">あ</div>
-                <div id="monster-romaji">Type: a</div>
+                <div id="monster">
+                    <div id="monster-sprite">👹</div>
+                    <div id="monster-kana">あ</div>
+                </div>
             </div>
 
             <div id="player-container">
@@ -410,7 +426,7 @@
 
         <div id="input-area">
             <div id="input-display"></div>
-            <div id="input-hint">Type the romaji to attack!</div>
+            <div id="input-hint">Type the romaji of the kana character to attack!</div>
         </div>
 
         <div id="game-over">
@@ -477,13 +493,21 @@
         let monstersInWave = 3;
         let monstersDefeated = 0;
 
+        // Monster sprites array
+        const monsterSprites = [
+            '👹', '👺', '👻', '💀', '👾', '🐉', '🐲',
+            '🦖', '🦕', '🐍', '🦂', '🕷️', '🦇', '🐙',
+            '🦑', '🐊', '🦈', '👿', '😈', '🤖', '👽'
+        ];
+
         // DOM elements
         const startScreen = document.getElementById('start-screen');
         const startButton = document.getElementById('start-button');
         const inputDisplay = document.getElementById('input-display');
         const monsterElement = document.getElementById('monster');
+        const monsterSpriteElement = document.getElementById('monster-sprite');
+        const monsterKanaElement = document.getElementById('monster-kana');
         const monsterNameElement = document.getElementById('monster-name');
-        const monsterRomajiElement = document.getElementById('monster-romaji');
         const monsterHealthFill = document.getElementById('monster-health-fill');
         const playerHealthFill = document.getElementById('player-health-fill');
         const playerHPText = document.getElementById('player-hp');
@@ -507,9 +531,16 @@
         // Spawn new monster
         function spawnMonster() {
             currentMonster = getRandomKana();
-            monsterElement.textContent = currentMonster.char;
-            monsterRomajiElement.textContent = 'Type: ' + currentMonster.romaji;
-            monsterNameElement.textContent = 'Kana Monster Lv.' + wave;
+
+            // Select random monster sprite
+            const randomSprite = monsterSprites[Math.floor(Math.random() * monsterSprites.length)];
+            monsterSpriteElement.textContent = randomSprite;
+            monsterKanaElement.textContent = currentMonster.char;
+
+            // Generate creative monster names
+            const monsterTypes = ['Demon', 'Beast', 'Shadow', 'Wraith', 'Fiend', 'Horror', 'Nightmare', 'Terror'];
+            const randomType = monsterTypes[Math.floor(Math.random() * monsterTypes.length)];
+            monsterNameElement.textContent = `${randomType} Lv.${wave}`;
 
             // Monster HP scales with wave
             monsterMaxHP = 100 + (wave - 1) * 20;
