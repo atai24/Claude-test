@@ -221,6 +221,143 @@
             font-size: 18px;
             z-index: 1000;
         }
+
+        #options-button {
+            position: absolute;
+            top: 120px;
+            right: 20px;
+            padding: 12px 25px;
+            font-size: 18px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        #options-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        #options-menu {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 40px 50px;
+            border-radius: 20px;
+            z-index: 4000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            min-width: 400px;
+        }
+
+        #options-menu h2 {
+            font-size: 36px;
+            margin-bottom: 30px;
+            color: #667eea;
+            text-align: center;
+        }
+
+        .option-group {
+            margin-bottom: 30px;
+        }
+
+        .option-group label {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #ffeb3b;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+        }
+
+        .checkbox-container label {
+            margin: 0;
+            font-size: 18px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .slider-container {
+            margin-top: 10px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #764ba2;
+            transform: scale(1.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .speed-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        #close-options {
+            width: 100%;
+            margin-top: 30px;
+            padding: 15px;
+            font-size: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #close-options:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -237,9 +374,42 @@
             <div id="lives">Lives: <span class="heart">❤️❤️❤️</span></div>
         </div>
 
-        <div class="kana-type-badge">Hiragana Mode</div>
+        <div class="kana-type-badge" id="kana-type-badge">Hiragana Only</div>
+
+        <button id="options-button">⚙️ Options</button>
 
         <div id="input-display"></div>
+
+        <div id="options-menu">
+            <h2>⚙️ Game Options</h2>
+
+            <div class="option-group">
+                <label>Character Sets:</label>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="hiragana-toggle" checked>
+                    <label for="hiragana-toggle">Hiragana (ひらがな)</label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="katakana-toggle">
+                    <label for="katakana-toggle">Katakana (カタカナ)</label>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label>
+                    Fall Speed: <span class="speed-value" id="speed-display">1.0x</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="speed-slider" min="0.5" max="3" step="0.1" value="1">
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 14px; color: #aaa; margin-top: 5px;">
+                    <span>Slow</span>
+                    <span>Fast</span>
+                </div>
+            </div>
+
+            <button id="close-options">Close</button>
+        </div>
 
         <div id="game-over">
             <h1>Game Over!</h1>
@@ -268,6 +438,25 @@
             'ぱ': 'pa', 'ぴ': 'pi', 'ぷ': 'pu', 'ぺ': 'pe', 'ぽ': 'po'
         };
 
+        // Kana to Romaji mapping (Katakana)
+        const katakanaMap = {
+            'ア': 'a', 'イ': 'i', 'ウ': 'u', 'エ': 'e', 'オ': 'o',
+            'カ': 'ka', 'キ': 'ki', 'ク': 'ku', 'ケ': 'ke', 'コ': 'ko',
+            'サ': 'sa', 'シ': 'shi', 'ス': 'su', 'セ': 'se', 'ソ': 'so',
+            'タ': 'ta', 'チ': 'chi', 'ツ': 'tsu', 'テ': 'te', 'ト': 'to',
+            'ナ': 'na', 'ニ': 'ni', 'ヌ': 'nu', 'ネ': 'ne', 'ノ': 'no',
+            'ハ': 'ha', 'ヒ': 'hi', 'フ': 'fu', 'ヘ': 'he', 'ホ': 'ho',
+            'マ': 'ma', 'ミ': 'mi', 'ム': 'mu', 'メ': 'me', 'モ': 'mo',
+            'ヤ': 'ya', 'ユ': 'yu', 'ヨ': 'yo',
+            'ラ': 'ra', 'リ': 'ri', 'ル': 'ru', 'レ': 're', 'ロ': 'ro',
+            'ワ': 'wa', 'ヲ': 'wo', 'ン': 'n',
+            'ガ': 'ga', 'ギ': 'gi', 'グ': 'gu', 'ゲ': 'ge', 'ゴ': 'go',
+            'ザ': 'za', 'ジ': 'ji', 'ズ': 'zu', 'ゼ': 'ze', 'ゾ': 'zo',
+            'ダ': 'da', 'ヂ': 'ji', 'ヅ': 'zu', 'デ': 'de', 'ド': 'do',
+            'バ': 'ba', 'ビ': 'bi', 'ブ': 'bu', 'ベ': 'be', 'ボ': 'bo',
+            'パ': 'pa', 'ピ': 'pi', 'プ': 'pu', 'ペ': 'pe', 'ポ': 'po'
+        };
+
         // Game state
         let score = 0;
         let lives = 3;
@@ -276,6 +465,11 @@
         let gameLoop;
         let spawnLoop;
         let gameRunning = false;
+
+        // Game settings
+        let useHiragana = true;
+        let useKatakana = false;
+        let fallSpeed = 1.0;
 
         // DOM elements
         const gameContainer = document.getElementById('game-container');
@@ -287,20 +481,60 @@
         const startScreen = document.getElementById('start-screen');
         const startButton = document.getElementById('start-button');
         const restartButton = document.getElementById('restart-button');
+        const optionsButton = document.getElementById('options-button');
+        const optionsMenu = document.getElementById('options-menu');
+        const closeOptionsButton = document.getElementById('close-options');
+        const hiraganaToggle = document.getElementById('hiragana-toggle');
+        const katakanaToggle = document.getElementById('katakana-toggle');
+        const speedSlider = document.getElementById('speed-slider');
+        const speedDisplay = document.getElementById('speed-display');
+        const kanaTypeBadge = document.getElementById('kana-type-badge');
+
+        // Update badge text based on settings
+        function updateBadge() {
+            let badgeText = '';
+            if (useHiragana && useKatakana) {
+                badgeText = 'Hiragana + Katakana';
+            } else if (useHiragana) {
+                badgeText = 'Hiragana Only';
+            } else if (useKatakana) {
+                badgeText = 'Katakana Only';
+            } else {
+                badgeText = 'No Characters Selected!';
+            }
+            kanaTypeBadge.textContent = badgeText;
+        }
+
+        // Get combined kana map based on settings
+        function getActiveKanaMap() {
+            let combinedMap = {};
+            if (useHiragana) {
+                combinedMap = {...combinedMap, ...hiraganaMap};
+            }
+            if (useKatakana) {
+                combinedMap = {...combinedMap, ...katakanaMap};
+            }
+            return combinedMap;
+        }
 
         // Get random kana
         function getRandomKana() {
-            const kanaList = Object.keys(hiraganaMap);
-            return kanaList[Math.floor(Math.random() * kanaList.length)];
+            const activeMap = getActiveKanaMap();
+            const kanaList = Object.keys(activeMap);
+            if (kanaList.length === 0) return null;
+            const kanaChar = kanaList[Math.floor(Math.random() * kanaList.length)];
+            return {char: kanaChar, romaji: activeMap[kanaChar]};
         }
 
         // Create falling kana
         function createKana() {
+            const kanaData = getRandomKana();
+            if (!kanaData) return; // No character sets selected
+
             const kana = document.createElement('div');
             kana.className = 'kana';
-            const kanaChar = getRandomKana();
-            kana.textContent = kanaChar;
-            kana.dataset.romaji = hiraganaMap[kanaChar];
+            kana.textContent = kanaData.char;
+            kana.dataset.romaji = kanaData.romaji;
             kana.dataset.posY = 0;
             kana.style.left = Math.random() * (window.innerWidth - 100) + 'px';
             kana.style.top = '-50px';
@@ -313,7 +547,7 @@
         function updateKana() {
             activeKana.forEach((kana, index) => {
                 const currentY = parseFloat(kana.dataset.posY);
-                const newY = currentY + 2; // Fall speed
+                const newY = currentY + (2 * fallSpeed); // Fall speed with multiplier
                 kana.dataset.posY = newY;
                 kana.style.top = newY + 'px';
 
@@ -445,6 +679,40 @@
         // Event listeners
         startButton.addEventListener('click', startGame);
         restartButton.addEventListener('click', startGame);
+
+        // Options menu
+        optionsButton.addEventListener('click', () => {
+            optionsMenu.style.display = 'block';
+        });
+
+        closeOptionsButton.addEventListener('click', () => {
+            optionsMenu.style.display = 'none';
+        });
+
+        hiraganaToggle.addEventListener('change', (e) => {
+            useHiragana = e.target.checked;
+            updateBadge();
+            // Prevent both being unchecked
+            if (!useHiragana && !useKatakana) {
+                useHiragana = true;
+                e.target.checked = true;
+            }
+        });
+
+        katakanaToggle.addEventListener('change', (e) => {
+            useKatakana = e.target.checked;
+            updateBadge();
+            // Prevent both being unchecked
+            if (!useHiragana && !useKatakana) {
+                useKatakana = true;
+                e.target.checked = true;
+            }
+        });
+
+        speedSlider.addEventListener('input', (e) => {
+            fallSpeed = parseFloat(e.target.value);
+            speedDisplay.textContent = fallSpeed.toFixed(1) + 'x';
+        });
 
         // Focus on window for keyboard input
         window.focus();
