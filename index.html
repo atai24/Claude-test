@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kana Typing Game</title>
+    <title>Kana RPG - Battle Monsters!</title>
     <style>
         * {
             margin: 0;
@@ -13,10 +13,11 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             overflow: hidden;
             position: relative;
             height: 100vh;
+            color: white;
         }
 
         #game-container {
@@ -24,121 +25,282 @@
             width: 100%;
             height: 100vh;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        #score-board {
+        /* Start Screen */
+        #start-screen {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 5000;
+        }
+
+        #start-screen h1 {
+            font-size: 64px;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        #start-screen p {
             font-size: 24px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.5);
+            color: #ffeb3b;
+            margin: 10px 0;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        #start-button {
+            margin-top: 40px;
+            padding: 20px 60px;
+            font-size: 32px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #start-button:hover {
+            background: #ee5a52;
+            transform: scale(1.05);
+        }
+
+        /* Top HUD */
+        #hud {
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 100;
+        }
+
+        #wave-info {
+            background: rgba(0, 0, 0, 0.7);
             padding: 15px 25px;
             border-radius: 10px;
+            font-size: 24px;
+            color: #4ecdc4;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        #score {
-            font-weight: bold;
+        #score-display {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 24px;
             color: #ffeb3b;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        #lives {
-            margin-top: 10px;
+        /* Battle Area */
+        #battle-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            position: relative;
+        }
+
+        /* Monster */
+        #monster-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: monsterFloat 2s ease-in-out infinite;
+        }
+
+        @keyframes monsterFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        #monster {
+            font-size: 120px;
+            background: rgba(255, 107, 107, 0.3);
+            padding: 40px 60px;
+            border-radius: 20px;
+            border: 4px solid #ff6b6b;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.5);
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        #monster.attacking {
+            animation: attackPulse 0.5s ease-in-out;
+        }
+
+        @keyframes attackPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); filter: brightness(1.5); }
+        }
+
+        #monster.damaged {
+            animation: damageBlink 0.3s ease-in-out;
+        }
+
+        @keyframes damageBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        #monster-health-bar {
+            width: 300px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 3px solid #ff6b6b;
+            margin-bottom: 10px;
+        }
+
+        #monster-health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b 0%, #ee5a52 100%);
+            transition: width 0.3s ease-out;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.8);
+        }
+
+        #monster-name {
             font-size: 20px;
+            color: #ff6b6b;
+            font-weight: bold;
+            margin-bottom: 5px;
         }
 
-        #lives .heart {
-            color: #ff4444;
+        #monster-romaji {
+            font-size: 18px;
+            color: #4ecdc4;
+            font-style: italic;
+        }
+
+        /* Player */
+        #player-container {
+            position: absolute;
+            bottom: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #player {
+            font-size: 80px;
+            background: rgba(78, 205, 196, 0.3);
+            padding: 30px 40px;
+            border-radius: 15px;
+            border: 3px solid #4ecdc4;
+            box-shadow: 0 8px 20px rgba(78, 205, 196, 0.5);
+            margin-bottom: 15px;
+        }
+
+        #player.damaged {
+            animation: playerDamage 0.5s ease-in-out;
+        }
+
+        @keyframes playerDamage {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        #player-health-bar {
+            width: 400px;
+            height: 35px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 17px;
+            overflow: hidden;
+            border: 3px solid #4ecdc4;
+        }
+
+        #player-health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecdc4 0%, #44a08d 100%);
+            transition: width 0.3s ease-out;
+            box-shadow: 0 0 10px rgba(78, 205, 196, 0.8);
+        }
+
+        #player-health-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Input Area */
+        #input-area {
+            width: 100%;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 100;
         }
 
         #input-display {
-            position: absolute;
-            bottom: 50px;
-            left: 50%;
-            transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.95);
-            padding: 20px 40px;
+            padding: 20px 50px;
             border-radius: 15px;
-            font-size: 36px;
+            font-size: 42px;
             font-weight: bold;
             color: #333;
-            min-width: 300px;
+            min-width: 400px;
             text-align: center;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            border: 3px solid #667eea;
+            border: 4px solid #4ecdc4;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .kana {
-            position: absolute;
-            font-size: 48px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px 25px;
-            border-radius: 10px;
-            cursor: default;
-            transition: all 0.2s;
+        #input-hint {
+            margin-top: 15px;
+            font-size: 18px;
+            color: #aaa;
         }
 
-        .kana:hover {
-            transform: scale(1.1);
-        }
-
-        .kana.hit {
-            animation: hitEffect 0.3s ease-out;
-        }
-
-        @keyframes hitEffect {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(1.5);
-                background: rgba(76, 175, 80, 0.8);
-            }
-            100% {
-                transform: scale(0);
-                opacity: 0;
-            }
-        }
-
-        .kana.missed {
-            animation: missEffect 0.5s ease-out;
-        }
-
-        @keyframes missEffect {
-            0% {
-                opacity: 1;
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(100px);
-            }
-        }
-
+        /* Game Over */
         #game-over {
             display: none;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             color: white;
-            padding: 50px;
+            padding: 50px 70px;
             border-radius: 20px;
             text-align: center;
-            z-index: 2000;
+            z-index: 4000;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 3px solid #ff6b6b;
         }
 
         #game-over h1 {
-            font-size: 48px;
+            font-size: 56px;
             margin-bottom: 20px;
-            color: #ff4444;
+            color: #ff6b6b;
         }
 
         #game-over p {
@@ -150,7 +312,7 @@
             margin-top: 30px;
             padding: 15px 40px;
             font-size: 24px;
-            background: #667eea;
+            background: #ff6b6b;
             color: white;
             border: none;
             border-radius: 10px;
@@ -159,262 +321,103 @@
         }
 
         #restart-button:hover {
-            background: #764ba2;
+            background: #ee5a52;
             transform: scale(1.05);
         }
 
-        #start-screen {
+        /* Damage Numbers */
+        .damage-number {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-        }
-
-        #start-screen h1 {
-            font-size: 64px;
-            color: white;
-            margin-bottom: 30px;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
-        }
-
-        #start-screen p {
-            font-size: 24px;
-            color: #ffeb3b;
-            margin: 15px 0;
-            text-align: center;
-            max-width: 600px;
-        }
-
-        #start-button {
-            margin-top: 40px;
-            padding: 20px 60px;
-            font-size: 32px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        #start-button:hover {
-            background: #45a049;
-            transform: scale(1.05);
-        }
-
-        .kana-type-badge {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 18px;
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff6b6b;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            animation: damageFloat 1s ease-out forwards;
+            pointer-events: none;
             z-index: 1000;
         }
 
-        #options-button {
-            position: absolute;
-            top: 120px;
-            right: 20px;
-            padding: 12px 25px;
-            font-size: 18px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
+        @keyframes damageFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(1.5);
+            }
         }
 
-        #options-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
+        .heal-number {
+            color: #4ecdc4;
         }
 
-        #options-menu {
-            display: none;
+        /* Victory Banner */
+        .victory-banner {
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.95);
-            color: white;
-            padding: 40px 50px;
-            border-radius: 20px;
-            z-index: 4000;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            min-width: 400px;
-        }
-
-        #options-menu h2 {
-            font-size: 36px;
-            margin-bottom: 30px;
-            color: #667eea;
-            text-align: center;
-        }
-
-        .option-group {
-            margin-bottom: 30px;
-        }
-
-        .option-group label {
-            display: block;
-            font-size: 20px;
-            margin-bottom: 10px;
-            color: #ffeb3b;
-        }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-
-        .checkbox-container input[type="checkbox"] {
-            width: 25px;
-            height: 25px;
-            cursor: pointer;
-        }
-
-        .checkbox-container label {
-            margin: 0;
-            font-size: 18px;
-            color: white;
-            cursor: pointer;
-        }
-
-        .slider-container {
-            margin-top: 10px;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 8px;
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.3);
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #667eea;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        input[type="range"]::-webkit-slider-thumb:hover {
-            background: #764ba2;
-            transform: scale(1.2);
-        }
-
-        input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #667eea;
-            cursor: pointer;
-            border: none;
-        }
-
-        .speed-value {
-            display: inline-block;
-            margin-left: 10px;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 72px;
             font-weight: bold;
-            color: #4CAF50;
+            color: #ffeb3b;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+            animation: victoryPop 0.5s ease-out forwards;
+            z-index: 2000;
+            pointer-events: none;
         }
 
-        #close-options {
-            width: 100%;
-            margin-top: 30px;
-            padding: 15px;
-            font-size: 20px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        #close-options:hover {
-            background: #764ba2;
-            transform: scale(1.05);
+        @keyframes victoryPop {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(0); }
         }
     </style>
 </head>
 <body>
     <div id="game-container">
         <div id="start-screen">
-            <h1>かな Typing Game</h1>
-            <p>Type the romaji for each falling kana character!</p>
-            <p>Press the correct keys before the kana reaches the bottom</p>
-            <button id="start-button">Start Game</button>
+            <h1>🗡️ Kana RPG Battle 🗡️</h1>
+            <p>Face waves of kana monsters!</p>
+            <p>Type the correct romaji to defeat each monster before they damage you!</p>
+            <p>Monsters attack continuously until defeated!</p>
+            <button id="start-button">Start Battle</button>
         </div>
 
-        <div id="score-board">
-            <div>Score: <span id="score">0</span></div>
-            <div id="lives">Lives: <span class="heart">❤️❤️❤️</span></div>
+        <div id="hud">
+            <div id="wave-info">Wave: <span id="wave-number">1</span></div>
+            <div id="score-display">Score: <span id="score">0</span></div>
         </div>
 
-        <div class="kana-type-badge" id="kana-type-badge">Hiragana Only</div>
-
-        <button id="options-button">⚙️ Options</button>
-
-        <div id="input-display"></div>
-
-        <div id="options-menu">
-            <h2>⚙️ Game Options</h2>
-
-            <div class="option-group">
-                <label>Character Sets:</label>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="hiragana-toggle" checked>
-                    <label for="hiragana-toggle">Hiragana (ひらがな)</label>
+        <div id="battle-area">
+            <div id="monster-container">
+                <div id="monster-name">Kana Monster</div>
+                <div id="monster-health-bar">
+                    <div id="monster-health-fill"></div>
                 </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="katakana-toggle">
-                    <label for="katakana-toggle">Katakana (カタカナ)</label>
-                </div>
+                <div id="monster">あ</div>
+                <div id="monster-romaji">Type: a</div>
             </div>
 
-            <div class="option-group">
-                <label>
-                    Fall Speed: <span class="speed-value" id="speed-display">1.0x</span>
-                </label>
-                <div class="slider-container">
-                    <input type="range" id="speed-slider" min="0.5" max="3" step="0.1" value="1">
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 14px; color: #aaa; margin-top: 5px;">
-                    <span>Slow</span>
-                    <span>Fast</span>
+            <div id="player-container">
+                <div id="player">🗡️</div>
+                <div id="player-health-bar">
+                    <div id="player-health-fill"></div>
+                    <div id="player-health-text"><span id="player-hp">100</span> / <span id="player-max-hp">100</span></div>
                 </div>
             </div>
+        </div>
 
-            <button id="close-options">Close</button>
+        <div id="input-area">
+            <div id="input-display"></div>
+            <div id="input-hint">Type the romaji to attack!</div>
         </div>
 
         <div id="game-over">
             <h1>Game Over!</h1>
+            <p>You survived <span id="final-waves">0</span> waves!</p>
             <p>Final Score: <span id="final-score">0</span></p>
-            <button id="restart-button">Play Again</button>
+            <button id="restart-button">Try Again</button>
         </div>
     </div>
 
@@ -457,203 +460,234 @@
             'パ': 'pa', 'ピ': 'pi', 'プ': 'pu', 'ペ': 'pe', 'ポ': 'po'
         };
 
-        // Game state
-        let score = 0;
-        let lives = 3;
-        let currentInput = '';
-        let activeKana = [];
-        let gameLoop;
-        let spawnLoop;
-        let gameRunning = false;
+        // Combine both kana sets
+        const allKanaMap = {...hiraganaMap, ...katakanaMap};
 
-        // Game settings
-        let useHiragana = true;
-        let useKatakana = false;
-        let fallSpeed = 1.0;
+        // Game state
+        let gameRunning = false;
+        let currentInput = '';
+        let score = 0;
+        let wave = 1;
+        let playerMaxHP = 100;
+        let playerHP = 100;
+        let monsterHP = 100;
+        let monsterMaxHP = 100;
+        let currentMonster = null;
+        let damageInterval = null;
+        let monstersInWave = 3;
+        let monstersDefeated = 0;
 
         // DOM elements
-        const gameContainer = document.getElementById('game-container');
-        const scoreElement = document.getElementById('score');
-        const livesElement = document.getElementById('lives');
-        const inputDisplay = document.getElementById('input-display');
-        const gameOverScreen = document.getElementById('game-over');
-        const finalScoreElement = document.getElementById('final-score');
         const startScreen = document.getElementById('start-screen');
         const startButton = document.getElementById('start-button');
+        const inputDisplay = document.getElementById('input-display');
+        const monsterElement = document.getElementById('monster');
+        const monsterNameElement = document.getElementById('monster-name');
+        const monsterRomajiElement = document.getElementById('monster-romaji');
+        const monsterHealthFill = document.getElementById('monster-health-fill');
+        const playerHealthFill = document.getElementById('player-health-fill');
+        const playerHPText = document.getElementById('player-hp');
+        const playerMaxHPText = document.getElementById('player-max-hp');
+        const waveNumberElement = document.getElementById('wave-number');
+        const scoreElement = document.getElementById('score');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScoreElement = document.getElementById('final-score');
+        const finalWavesElement = document.getElementById('final-waves');
         const restartButton = document.getElementById('restart-button');
-        const optionsButton = document.getElementById('options-button');
-        const optionsMenu = document.getElementById('options-menu');
-        const closeOptionsButton = document.getElementById('close-options');
-        const hiraganaToggle = document.getElementById('hiragana-toggle');
-        const katakanaToggle = document.getElementById('katakana-toggle');
-        const speedSlider = document.getElementById('speed-slider');
-        const speedDisplay = document.getElementById('speed-display');
-        const kanaTypeBadge = document.getElementById('kana-type-badge');
-
-        // Update badge text based on settings
-        function updateBadge() {
-            let badgeText = '';
-            if (useHiragana && useKatakana) {
-                badgeText = 'Hiragana + Katakana';
-            } else if (useHiragana) {
-                badgeText = 'Hiragana Only';
-            } else if (useKatakana) {
-                badgeText = 'Katakana Only';
-            } else {
-                badgeText = 'No Characters Selected!';
-            }
-            kanaTypeBadge.textContent = badgeText;
-        }
-
-        // Get combined kana map based on settings
-        function getActiveKanaMap() {
-            let combinedMap = {};
-            if (useHiragana) {
-                combinedMap = {...combinedMap, ...hiraganaMap};
-            }
-            if (useKatakana) {
-                combinedMap = {...combinedMap, ...katakanaMap};
-            }
-            return combinedMap;
-        }
+        const playerElement = document.getElementById('player');
+        const monsterContainer = document.getElementById('monster-container');
 
         // Get random kana
         function getRandomKana() {
-            const activeMap = getActiveKanaMap();
-            const kanaList = Object.keys(activeMap);
-            if (kanaList.length === 0) return null;
+            const kanaList = Object.keys(allKanaMap);
             const kanaChar = kanaList[Math.floor(Math.random() * kanaList.length)];
-            return {char: kanaChar, romaji: activeMap[kanaChar]};
+            return {char: kanaChar, romaji: allKanaMap[kanaChar]};
         }
 
-        // Create falling kana
-        function createKana() {
-            const kanaData = getRandomKana();
-            if (!kanaData) return; // No character sets selected
+        // Spawn new monster
+        function spawnMonster() {
+            currentMonster = getRandomKana();
+            monsterElement.textContent = currentMonster.char;
+            monsterRomajiElement.textContent = 'Type: ' + currentMonster.romaji;
+            monsterNameElement.textContent = 'Kana Monster Lv.' + wave;
 
-            const kana = document.createElement('div');
-            kana.className = 'kana';
-            kana.textContent = kanaData.char;
-            kana.dataset.romaji = kanaData.romaji;
-            kana.dataset.posY = 0;
-            kana.style.left = Math.random() * (window.innerWidth - 100) + 'px';
-            kana.style.top = '-50px';
+            // Monster HP scales with wave
+            monsterMaxHP = 100 + (wave - 1) * 20;
+            monsterHP = monsterMaxHP;
+            updateMonsterHealth();
 
-            gameContainer.appendChild(kana);
-            activeKana.push(kana);
+            // Start monster damage over time
+            startMonsterAttacks();
         }
 
-        // Update kana positions
-        function updateKana() {
-            activeKana.forEach((kana, index) => {
-                const currentY = parseFloat(kana.dataset.posY);
-                const newY = currentY + (2 * fallSpeed); // Fall speed with multiplier
-                kana.dataset.posY = newY;
-                kana.style.top = newY + 'px';
+        // Start monster attacking player
+        function startMonsterAttacks() {
+            if (damageInterval) clearInterval(damageInterval);
 
-                // Check if kana reached bottom
-                if (newY > window.innerHeight - 100) {
-                    kana.classList.add('missed');
-                    setTimeout(() => {
-                        if (kana.parentElement) {
-                            kana.remove();
-                        }
-                    }, 500);
-                    activeKana.splice(index, 1);
-                    loseLife();
+            damageInterval = setInterval(() => {
+                if (!gameRunning) return;
+
+                // Monster deals damage based on wave (increases with difficulty)
+                const damage = 5 + Math.floor(wave / 2);
+                playerHP = Math.max(0, playerHP - damage);
+                updatePlayerHealth();
+
+                // Show damage animation
+                monsterElement.classList.add('attacking');
+                playerElement.classList.add('damaged');
+                setTimeout(() => {
+                    monsterElement.classList.remove('attacking');
+                    playerElement.classList.remove('damaged');
+                }, 500);
+
+                // Show damage number
+                showDamageNumber(damage, false);
+
+                // Check if player died
+                if (playerHP <= 0) {
+                    gameOver();
                 }
-            });
+            }, 2000); // Monster attacks every 2 seconds
         }
 
-        // Check input against active kana
+        // Stop monster attacks
+        function stopMonsterAttacks() {
+            if (damageInterval) {
+                clearInterval(damageInterval);
+                damageInterval = null;
+            }
+        }
+
+        // Show floating damage numbers
+        function showDamageNumber(amount, isHeal = false) {
+            const damageNum = document.createElement('div');
+            damageNum.className = 'damage-number' + (isHeal ? ' heal-number' : '');
+            damageNum.textContent = (isHeal ? '+' : '-') + amount;
+
+            // Position near player
+            damageNum.style.left = '50%';
+            damageNum.style.top = '60%';
+
+            document.getElementById('game-container').appendChild(damageNum);
+
+            setTimeout(() => damageNum.remove(), 1000);
+        }
+
+        // Update health bars
+        function updatePlayerHealth() {
+            const percentage = (playerHP / playerMaxHP) * 100;
+            playerHealthFill.style.width = percentage + '%';
+            playerHPText.textContent = Math.max(0, playerHP);
+        }
+
+        function updateMonsterHealth() {
+            const percentage = (monsterHP / monsterMaxHP) * 100;
+            monsterHealthFill.style.width = percentage + '%';
+        }
+
+        // Check input
         function checkInput() {
-            let matched = false;
+            if (!currentMonster) return;
 
-            for (let i = 0; i < activeKana.length; i++) {
-                const kana = activeKana[i];
-                const romaji = kana.dataset.romaji;
-
-                if (romaji === currentInput.toLowerCase()) {
-                    // Hit!
-                    kana.classList.add('hit');
-                    setTimeout(() => {
-                        if (kana.parentElement) {
-                            kana.remove();
-                        }
-                    }, 300);
-                    activeKana.splice(i, 1);
-                    score += 10;
-                    scoreElement.textContent = score;
-                    currentInput = '';
-                    inputDisplay.textContent = '';
-                    matched = true;
-                    break;
-                }
-            }
-
-            // Check if any kana starts with current input
-            if (!matched && currentInput.length > 0) {
-                let hasMatch = false;
-                for (let kana of activeKana) {
-                    if (kana.dataset.romaji.startsWith(currentInput.toLowerCase())) {
-                        hasMatch = true;
-                        break;
-                    }
-                }
-
-                // If no kana matches, reset input
-                if (!hasMatch) {
-                    currentInput = '';
-                    inputDisplay.textContent = '';
-                }
+            if (currentInput.toLowerCase() === currentMonster.romaji) {
+                // Correct! Defeat monster
+                defeatMonster();
+            } else if (currentMonster.romaji.startsWith(currentInput.toLowerCase())) {
+                // Correct so far, keep going
+                return;
+            } else {
+                // Wrong input, reset
+                currentInput = '';
+                inputDisplay.textContent = '';
             }
         }
 
-        // Lose a life
-        function loseLife() {
-            lives--;
-            const hearts = ['❤️❤️❤️', '❤️❤️', '❤️', ''];
-            livesElement.innerHTML = `<span class="heart">${hearts[lives]}</span>`;
+        // Defeat monster
+        function defeatMonster() {
+            stopMonsterAttacks();
 
-            if (lives <= 0) {
-                gameOver();
+            // Animation
+            monsterElement.classList.add('damaged');
+
+            // Award points
+            const points = 100 * wave;
+            score += points;
+            scoreElement.textContent = score;
+
+            // Show victory banner
+            const banner = document.createElement('div');
+            banner.className = 'victory-banner';
+            banner.textContent = '+' + points;
+            document.getElementById('game-container').appendChild(banner);
+            setTimeout(() => banner.remove(), 500);
+
+            // Reset input
+            currentInput = '';
+            inputDisplay.textContent = '';
+
+            monstersDefeated++;
+
+            // Check if wave is complete
+            if (monstersDefeated >= monstersInWave) {
+                // Next wave
+                setTimeout(() => {
+                    nextWave();
+                }, 1000);
+            } else {
+                // Spawn next monster in wave
+                setTimeout(() => {
+                    monsterElement.classList.remove('damaged');
+                    spawnMonster();
+                }, 1000);
             }
+        }
+
+        // Next wave
+        function nextWave() {
+            wave++;
+            monstersDefeated = 0;
+            monstersInWave = 3 + Math.floor(wave / 3); // More monsters each wave
+            waveNumberElement.textContent = wave;
+
+            // Heal player slightly between waves
+            const heal = 20;
+            playerHP = Math.min(playerMaxHP, playerHP + heal);
+            updatePlayerHealth();
+
+            monsterElement.classList.remove('damaged');
+            spawnMonster();
         }
 
         // Game over
         function gameOver() {
             gameRunning = false;
-            clearInterval(gameLoop);
-            clearInterval(spawnLoop);
+            stopMonsterAttacks();
             finalScoreElement.textContent = score;
+            finalWavesElement.textContent = wave;
             gameOverScreen.style.display = 'block';
         }
 
         // Start game
         function startGame() {
-            // Reset game state
-            score = 0;
-            lives = 3;
-            currentInput = '';
-            activeKana.forEach(kana => kana.remove());
-            activeKana = [];
-
-            scoreElement.textContent = score;
-            livesElement.innerHTML = '<span class="heart">❤️❤️❤️</span>';
-            inputDisplay.textContent = '';
-            gameOverScreen.style.display = 'none';
-            startScreen.style.display = 'none';
-
+            // Reset state
             gameRunning = true;
+            score = 0;
+            wave = 1;
+            monstersDefeated = 0;
+            monstersInWave = 3;
+            playerHP = playerMaxHP;
+            currentInput = '';
 
-            // Start game loops
-            gameLoop = setInterval(() => {
-                updateKana();
-            }, 1000 / 60); // 60 FPS
+            // Reset UI
+            scoreElement.textContent = score;
+            waveNumberElement.textContent = wave;
+            inputDisplay.textContent = '';
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            updatePlayerHealth();
 
-            spawnLoop = setInterval(() => {
-                createKana();
-            }, 2000); // Spawn new kana every 2 seconds
+            // Spawn first monster
+            spawnMonster();
         }
 
         // Keyboard input
@@ -680,41 +714,6 @@
         startButton.addEventListener('click', startGame);
         restartButton.addEventListener('click', startGame);
 
-        // Options menu
-        optionsButton.addEventListener('click', () => {
-            optionsMenu.style.display = 'block';
-        });
-
-        closeOptionsButton.addEventListener('click', () => {
-            optionsMenu.style.display = 'none';
-        });
-
-        hiraganaToggle.addEventListener('change', (e) => {
-            useHiragana = e.target.checked;
-            updateBadge();
-            // Prevent both being unchecked
-            if (!useHiragana && !useKatakana) {
-                useHiragana = true;
-                e.target.checked = true;
-            }
-        });
-
-        katakanaToggle.addEventListener('change', (e) => {
-            useKatakana = e.target.checked;
-            updateBadge();
-            // Prevent both being unchecked
-            if (!useHiragana && !useKatakana) {
-                useKatakana = true;
-                e.target.checked = true;
-            }
-        });
-
-        speedSlider.addEventListener('input', (e) => {
-            fallSpeed = parseFloat(e.target.value);
-            speedDisplay.textContent = fallSpeed.toFixed(1) + 'x';
-        });
-
-        // Focus on window for keyboard input
         window.focus();
     </script>
 </body>
