@@ -23,6 +23,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export { PrismaClient };
+export { imageUrl, imageRelativePath } from "./image-url";
 export type {
   Set,
   Card,

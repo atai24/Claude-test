@@ -12,6 +12,9 @@
     "db:seed": {
       "cache": false
     },
+    "db:download-images": {
+      "cache": false
+    },
     "db:migrate": {
       "cache": false
     },

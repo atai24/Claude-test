@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { prisma } from "@pokemon-tcg/db";
+import { prisma, imageUrl } from "@pokemon-tcg/db";
 import { AppError } from "../middleware/errorHandler";
 import type { SetSummary, SetDetail, PaginatedResponse, CardSummary } from "@pokemon-tcg/shared";
 
@@ -28,8 +28,8 @@ setsRouter.get("/", async (_req, res, next) => {
       name: s.name,
       series: s.series,
       releaseDate: s.releaseDate,
-      logoUrl: s.logoUrl,
-      symbolUrl: s.symbolUrl,
+      logoUrl: imageUrl(s.logoUrl),
+      symbolUrl: imageUrl(s.symbolUrl),
     }));
 
     res.json(response);
@@ -64,8 +64,8 @@ setsRouter.get("/:setId", async (req, res, next) => {
       printedTotal: set.printedTotal,
       total: set.total,
       releaseDate: set.releaseDate,
-      logoUrl: set.logoUrl,
-      symbolUrl: set.symbolUrl,
+      logoUrl: imageUrl(set.logoUrl),
+      symbolUrl: imageUrl(set.symbolUrl),
       cardCount: set._count.cards,
     };
 
@@ -119,7 +119,7 @@ setsRouter.get("/:setId/cards", async (req, res, next) => {
       name: c.name,
       number: c.number,
       rarity: c.rarity,
-      imageSmall: c.imageSmall,
+      imageSmall: imageUrl(c.imageSmall),
       setId: c.setId,
       setName: c.set.name,
       latestPrice: c.priceSnapshots[0]

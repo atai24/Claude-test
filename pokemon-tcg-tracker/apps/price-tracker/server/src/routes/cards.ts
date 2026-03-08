@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { prisma } from "@pokemon-tcg/db";
+import { prisma, imageUrl } from "@pokemon-tcg/db";
 import { AppError } from "../middleware/errorHandler";
 import type {
   CardDetail,
@@ -63,7 +63,7 @@ cardsRouter.get("/search", async (req, res, next) => {
       name: c.name,
       number: c.number,
       rarity: c.rarity,
-      imageSmall: c.imageSmall,
+      imageSmall: imageUrl(c.imageSmall),
       setId: c.setId,
       setName: c.set.name,
       latestPrice: c.priceSnapshots[0]
@@ -139,8 +139,8 @@ cardsRouter.get("/:cardId", async (req, res, next) => {
       number: card.number,
       artist: card.artist,
       nationalPokedexNumbers: card.nationalPokedexNumbers,
-      imageSmall: card.imageSmall,
-      imageLarge: card.imageLarge,
+      imageSmall: imageUrl(card.imageSmall),
+      imageLarge: imageUrl(card.imageLarge),
       language: card.language,
       setId: card.setId,
       setName: card.set.name,
