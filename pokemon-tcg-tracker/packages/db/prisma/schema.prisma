@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// Card Catalog (read-only reference data)
+// Seeded from pokemon-tcg-data; never written by app UI
+// ─────────────────────────────────────────────
+
+model Set {
+  id           String   @id
+  name         String
+  series       String
+  printedTotal Int
+  total        Int
+  releaseDate  String
+  logoUrl      String?
+  symbolUrl    String?
+  language     String   @default("en")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cards Card[]
+
+  @@index([series])
+  @@index([language])
+}
+
+model Card {
+  id                    String   @id
+  name                  String
+  supertype             String?
+  subtypes              String[]
+  hp                    String?
+  types                 String[]
+  evolvesFrom           String?
+  rarity                String?
+  number                String
+  artist                String?
+  nationalPokedexNumbers Int[]
+  imageSmall            String?
+  imageLarge            String?
+  language              String   @default("en")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  setId String
+  set   Set    @relation(fields: [setId], references: [id])
+
+  variants        CardVariant[]
+  priceSnapshots  PriceSnapshot[]
+  ebayListings    EbayListing[]
+  collectionItems UserCollection[]
+
+  @@index([setId])
+  @@index([name])
+  @@index([rarity])
+  @@index([language])
+}
+
+/// Represents a specific printing of a card (holofoil, reverse holo, first edition, etc.)
+model CardVariant {
+  id          String  @id @default(cuid())
+  cardId      String
+  variantType String  // e.g. "holofoil", "reverse_holo", "first_edition", "unlimited"
+  description String?
+
+  card            Card             @relation(fields: [cardId], references: [id])
+  collectionItems UserCollection[]
+
+  @@unique([cardId, variantType])
+  @@index([cardId])
+}
+
+// ─────────────────────────────────────────────
+// Market / Pricing Layer
+// Append-only — rows are never updated, only inserted.
+// External agents (running on Mac mini) write to these tables.
+// To get current price: SELECT ... ORDER BY recordedAt DESC LIMIT 1
+// ─────────────────────────────────────────────
+
+enum PriceSource {
+  TCGPLAYER
+  EBAY
+  CARDMARKET
+}
+
+enum CardCondition {
+  NEAR_MINT
+  LIGHTLY_PLAYED
+  MODERATELY_PLAYED
+  HEAVILY_PLAYED
+  DAMAGED
+  GRADED
+}
+
+model PriceSnapshot {
+  id         String        @id @default(cuid())
+  cardId     String
+  source     PriceSource
+  condition  CardCondition
+  price      Decimal       @db.Decimal(10, 2)
+  currency   String        @default("USD")
+  recordedAt DateTime      @default(now())
+
+  card Card @relation(fields: [cardId], references: [id])
+
+  @@index([cardId, recordedAt(sort: Desc)])
+  @@index([cardId, source, condition])
+}
+
+model EbayListing {
+  id         String   @id @default(cuid())
+  itemId     String   @unique
+  cardId     String
+  title      String
+  soldPrice  Decimal  @db.Decimal(10, 2)
+  condition  String?
+  isGraded   Boolean  @default(false)
+  grader     String?
+  grade      String?
+  soldAt     DateTime
+  listingUrl String
+  createdAt  DateTime @default(now())
+
+  card Card @relation(fields: [cardId], references: [id])
+
+  @@index([cardId, soldAt(sort: Desc)])
+}
+
+// ─────────────────────────────────────────────
+// Collection Layer
+// Designed for extensibility — the future storage organizer
+// will add StorageBox + StorageSlot models and FK columns here.
+// ─────────────────────────────────────────────
+
+model UserCollection {
+  id             String        @id @default(cuid())
+  userId         String
+  cardId         String
+  variantId      String?
+  quantity       Int           @default(1)
+  condition      CardCondition @default(NEAR_MINT)
+  acquiredAt     DateTime?
+  acquiredPrice  Decimal?      @db.Decimal(10, 2)
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // Future extension point: storageSlotId String?
+  // Future extension point: storageSlot StorageSlot? @relation(...)
+
+  card    Card         @relation(fields: [cardId], references: [id])
+  variant CardVariant? @relation(fields: [variantId], references: [id])
+
+  @@index([userId])
+  @@index([cardId])
+  @@index([userId, cardId])
+}

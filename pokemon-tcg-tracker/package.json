@@ -1,0 +1,22 @@
+{
+  "name": "pokemon-tcg-tracker",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:seed": "turbo run db:seed --filter=@pokemon-tcg/db",
+    "db:migrate": "turbo run db:migrate --filter=@pokemon-tcg/db",
+    "db:generate": "turbo run db:generate --filter=@pokemon-tcg/db"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

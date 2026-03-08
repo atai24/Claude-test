@@ -1,0 +1,136 @@
+.root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(15, 17, 23, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.headerInner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.logo:hover {
+  color: var(--accent-hover);
+}
+
+.logoPokeball {
+  color: var(--accent);
+  font-size: 1.3rem;
+}
+
+.searchForm {
+  flex: 1;
+  max-width: 480px;
+  display: flex;
+  gap: 8px;
+}
+
+.searchInput {
+  flex: 1;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.searchInput:focus {
+  border-color: var(--accent);
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.searchBtn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.searchBtn:hover {
+  background: var(--accent-hover);
+}
+
+.nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.navLink {
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  transition: color 0.15s, background 0.15s;
+}
+
+.navLink:hover {
+  color: var(--text-primary);
+  background: var(--bg-raised);
+}
+
+.main {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 20px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.footer a {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 640px) {
+  .searchForm {
+    display: none;
+  }
+
+  .nav {
+    margin-left: auto;
+  }
+}

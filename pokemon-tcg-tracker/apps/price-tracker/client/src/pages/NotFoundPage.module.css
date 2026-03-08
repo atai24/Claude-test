@@ -1,0 +1,42 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.code {
+  font-size: 5rem;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.body {
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+}
+
+.homeLink {
+  background: var(--accent);
+  color: white;
+  text-decoration: none;
+  padding: 10px 28px;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.homeLink:hover {
+  background: var(--accent-hover);
+  color: white;
+}
