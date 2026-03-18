@@ -19,6 +19,8 @@
 import { PrismaClient } from "@prisma/client";
 import https from "https";
 import http from "http";
+import fs from "fs";
+import path from "path";
 
 const prisma = new PrismaClient({
   log: ["error"],
@@ -100,7 +102,7 @@ function fetchJson<T>(url: string): Promise<T> {
     });
 
     req.on("error", reject);
-    req.setTimeout(30_000, () => {
+    req.setTimeout(120_000, () => {
       req.destroy(new Error(`Timeout fetching ${url}`));
     });
   });
@@ -212,14 +214,29 @@ async function upsertCardsBatch(
 const BASE_URL =
   "https://raw.githubusercontent.com/PokemonTCG/pokemon-tcg-data/master";
 
+const LOCAL_DATA_DIR = path.resolve(__dirname, "../data");
+
+function readLocalJson<T>(filePath: string): T | null {
+  try {
+    const data = fs.readFileSync(filePath, "utf8");
+    return JSON.parse(data) as T;
+  } catch {
+    return null;
+  }
+}
+
 async function main(): Promise<void> {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(" Pokémon TCG — Catalog Seed");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
+  const useLocal = fs.existsSync(path.join(LOCAL_DATA_DIR, "sets-en.json"));
+
   // 1. Fetch sets
-  console.log("\n[1/3] Fetching sets from pokemon-tcg-data...");
-  const sets = await fetchJson<RawSet[]>(`${BASE_URL}/sets/en.json`);
+  console.log(`\n[1/3] Loading sets ${useLocal ? "(local)" : "(remote)"}...`);
+  const sets = useLocal
+    ? readLocalJson<RawSet[]>(path.join(LOCAL_DATA_DIR, "sets-en.json"))!
+    : await fetchJson<RawSet[]>(`${BASE_URL}/sets/en.json`);
   console.log(`      Found ${sets.length} sets.`);
 
   // 2. Upsert sets
@@ -228,7 +245,7 @@ async function main(): Promise<void> {
   console.log(`      ✓ ${setsUpserted}/${sets.length} sets upserted.`);
 
   // 3. Fetch and upsert cards per set
-  console.log("\n[3/3] Fetching and upserting cards by set...");
+  console.log("\n[3/3] Loading and upserting cards by set...");
   let totalCards = 0;
   let totalOk = 0;
   const allErrors: string[] = [];
@@ -240,14 +257,19 @@ async function main(): Promise<void> {
     );
 
     let cards: RawCard[];
-    try {
-      cards = await fetchJson<RawCard[]>(
-        `${BASE_URL}/cards/en/${set.id}.json`
-      );
-    } catch (err) {
-      process.stdout.write(`  ✗ fetch error: ${String(err)}\n`);
-      allErrors.push(`set ${set.id}: fetch error: ${String(err)}`);
-      continue;
+    const localCardFile = path.join(LOCAL_DATA_DIR, "cards", "en", `${set.id}.json`);
+    if (useLocal && fs.existsSync(localCardFile)) {
+      cards = readLocalJson<RawCard[]>(localCardFile)!;
+    } else {
+      try {
+        cards = await fetchJson<RawCard[]>(
+          `${BASE_URL}/cards/en/${set.id}.json`
+        );
+      } catch (err) {
+        process.stdout.write(`  ✗ fetch error: ${String(err)}\n`);
+        allErrors.push(`set ${set.id}: fetch error: ${String(err)}`);
+        continue;
+      }
     }
 
     const { ok, errors } = await upsertCardsBatch(cards, set.id);
